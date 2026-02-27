@@ -19,6 +19,7 @@ def create_app():
         __name__,
         template_folder=os.path.join(base_dir, "frontend", "templates"),
         static_folder=os.path.join(base_dir, "frontend", "static"),
+        static_url_path="/static",
     )
 
     # ── Configuration ────────────────────────────────────────────
