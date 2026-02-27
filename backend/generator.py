@@ -12,16 +12,21 @@ keyword extraction.  No heavy transformer models required.
 
 import random
 import re
+import os
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.tag import pos_tag
+
+# On Vercel, NLTK data must go to /tmp (filesystem is read-only elsewhere)
+if os.environ.get("VERCEL"):
+    nltk.data.path.insert(0, "/tmp/nltk_data")
 
 # Ensure required NLTK data is available (download silently on first run)
 for _pkg in ("punkt", "punkt_tab", "averaged_perceptron_tagger", "averaged_perceptron_tagger_eng"):
     try:
         nltk.data.find(f"tokenizers/{_pkg}" if "punkt" in _pkg else f"taggers/{_pkg}")
     except LookupError:
-        nltk.download(_pkg, quiet=True)
+        nltk.download(_pkg, quiet=True, download_dir="/tmp/nltk_data" if os.environ.get("VERCEL") else None)
 
 
 # ---------------------------------------------------------------------------
