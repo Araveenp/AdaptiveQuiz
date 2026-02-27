@@ -10,9 +10,21 @@ class AIEngine:
 
     def __init__(self, api_key=None):
         self.api_key = api_key or os.getenv("GROQ_API_KEY", "")
-        self.client = Groq(api_key=self.api_key) if self.api_key else None
+        self._client = None
         self.MODEL = "llama-3.3-70b-versatile"
         self.FAST_MODEL = "llama-3.1-8b-instant"
+
+    @property
+    def client(self):
+        """Lazy-init Groq client so env vars are loaded first."""
+        if self._client is None:
+            key = self.api_key or os.getenv("GROQ_API_KEY", "")
+            if key:
+                self._client = Groq(api_key=key)
+                print(f"[AIEngine] Groq client initialized (key: ...{key[-6:]})")
+            else:
+                print("[AIEngine] WARNING: No GROQ_API_KEY found!")
+        return self._client
 
     def _request(self, func, *args, **kwargs):
         """Retry wrapper for API calls."""
@@ -28,8 +40,14 @@ class AIEngine:
     # ── Quiz Generation ──────────────────────────────────────────────
     def generate_questions(self, content, count=5, q_format="mcq", difficulty="medium"):
         """Generate quiz questions from content using Llama 3.3."""
-        if not self.client or not content:
+        if not self.client:
+            print("[AIEngine] No client — cannot generate questions")
             return []
+        if not content:
+            print("[AIEngine] No content provided")
+            return []
+
+        print(f"[AIEngine] Generating {count} {q_format} questions, difficulty={difficulty}")
 
         diff_guide = {
             "easy": "simple recall and basic understanding",
@@ -73,13 +91,21 @@ class AIEngine:
                 model=self.MODEL,
                 response_format={"type": "json_object"},
                 temperature=0.3,
-                timeout=30.0,
+                timeout=60.0,
             )
             if completion:
-                data = json.loads(completion.choices[0].message.content)
-                return data.get("questions", [])
+                raw = completion.choices[0].message.content
+                print(f"[AIEngine] Got response ({len(raw)} chars)")
+                data = json.loads(raw)
+                questions = data.get("questions", [])
+                print(f"[AIEngine] Parsed {len(questions)} questions")
+                return questions
+            else:
+                print("[AIEngine] No completion returned after retries")
         except Exception as e:
-            print(f"Question generation error: {e}")
+            print(f"[AIEngine] Question generation error: {e}")
+            import traceback
+            traceback.print_exc()
         return []
 
     # ── Study Material Generation ────────────────────────────────────

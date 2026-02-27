@@ -16,13 +16,28 @@ from backend.services import extract_text_from_pdf, extract_text_from_image, cle
 
 routes_bp = Blueprint("routes", __name__)
 
-# Initialize AI engine
-ai = AIEngine(api_key=os.getenv("GROQ_API_KEY"))
+# Initialize AI engine (lazy — key resolved at first use)
+ai = AIEngine()
 
 
 def is_allowed():
     """Check if user is logged in or guest."""
     return current_user.is_authenticated or session.get("is_guest")
+
+
+# ═══════════════════════════════════════════════════════════════════
+# HEALTH CHECK
+# ═══════════════════════════════════════════════════════════════════
+
+@routes_bp.route("/health")
+def health_check():
+    key = os.getenv("GROQ_API_KEY", "")
+    return jsonify({
+        "status": "ok",
+        "groq_key_set": bool(key),
+        "groq_key_preview": f"...{key[-6:]}" if len(key) > 6 else "NOT SET",
+        "ai_client_ready": ai.client is not None,
+    })
 
 
 # ═══════════════════════════════════════════════════════════════════
