@@ -5,7 +5,6 @@ import tempfile
 
 from flask import Flask
 from flask_login import LoginManager
-from flask_cors import CORS
 from dotenv import load_dotenv
 
 from backend.models import db, User
@@ -42,7 +41,6 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
     # ── Extensions ───────────────────────────────────────────────
-    CORS(app)
     db.init_app(app)
 
     login_manager = LoginManager(app)

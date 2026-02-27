@@ -25,20 +25,19 @@ def extract_text_from_pdf(file_obj, upload_folder="/tmp/uploads"):
 
 
 def extract_text_from_image(file_obj):
-    """Extract text from an image using PIL + basic OCR."""
+    """Extract text from an image — lightweight fallback without Pillow."""
     try:
+        # Try PIL if available locally (not bundled for Vercel)
         from PIL import Image
-        import io
-
         img = Image.open(file_obj)
-        # Use pytesseract if available, fallback to returning empty
         try:
             import pytesseract
             text = pytesseract.image_to_string(img)
             return text.strip() if text else ""
         except ImportError:
-            # No pytesseract — return placeholder
-            return "[Image uploaded — OCR not available in this environment]"
+            return "[Image uploaded — OCR requires pytesseract]"
+    except ImportError:
+        return "[Image OCR not available — please use PDF or text input instead]"
     except Exception as e:
         print(f"Image extraction error: {e}")
         return ""
