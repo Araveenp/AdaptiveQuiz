@@ -1,41 +1,37 @@
-# 🧠 Adaptive Quiz & Question Generator
+# 🧠 AdaptiveQuiz — AI-Powered Adaptive Quiz & Study Platform
 
-An open-source, full-stack adaptive quiz platform that generates personalized quizzes from any educational content using NLP. Built with **Flask** (Python) backend and **React** frontend.
+An intelligent, AI-powered quiz and study platform that generates personalised questions, study materials, and performance analytics using **Groq LLM (Llama 3.3)**.
 
----
-
-## 📋 Features
-
-| Module | Description |
-|--------|-------------|
-| **User & Profile Management** | Registration, JWT login, profile with difficulty preferences & subjects |
-| **Content Ingestion** | Upload text, URLs, or PDFs → auto-chunked into knowledge segments |
-| **Question Generator Engine** | NLP-based generation of MCQ, Fill-in-the-blank, True/False, Short Answer |
-| **Adaptive Learning Engine** | Tracks performance history, adjusts difficulty automatically |
-| **Quiz Interface** | Interactive quiz UI with live scoring, progress tracking, result review |
-| **Admin Dashboard** | User analytics, question moderation, flagging, feedback collection |
-| **Dockerized Deployment** | Ready for cloud hosting with Docker Compose |
+Built as a capstone project for the **Infosys Springboard Virtual Internship**.
 
 ---
 
-## 🏗️ Architecture
+## ✨ Features
 
-```
-┌─────────────────┐     HTTP/JSON      ┌──────────────────────────┐
-│   React Frontend │ ◄──────────────► │     Flask REST API         │
-│   (port 3000)    │                   │     (port 5000)            │
-└─────────────────┘                   ├──────────────────────────┤
-                                       │  Auth Blueprint (/auth)   │
-                                       │  Content Blueprint        │
-                                       │  Quiz Blueprint (/quiz)   │
-                                       │  Admin Blueprint (/admin) │
-                                       ├──────────────────────────┤
-                                       │  Question Generator (NLP) │
-                                       │  Adaptive Engine          │
-                                       ├──────────────────────────┤
-                                       │  SQLite / PostgreSQL      │
-                                       └──────────────────────────┘
-```
+| Feature | Description |
+|---------|-------------|
+| 🎯 **AI Quiz Generation** | Generate MCQ & True/False questions from topics, raw text, or PDF uploads |
+| 📚 **Study Hub** | Get AI-generated shorthand notes, ELI10 explanations, mnemonic stories, key concepts & flashcards |
+| 📊 **Adaptive Difficulty** | Questions adapt based on your performance history |
+| 🏆 **Streak Tracking** | Daily login streaks and gamification |
+| 🔍 **Mistake Bank** | Review wrong answers and re-quiz on weak areas |
+| 📈 **Performance Analytics** | Score history charts, topic mastery tracking, AI insights |
+| 👤 **Guest Mode** | Try without creating an account |
+| 🎨 **Glassmorphic UI** | Modern dark-themed design with glass effects |
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Flask 3.0, Flask-Login, Flask-SQLAlchemy |
+| **AI/LLM** | Groq API — Llama 3.3 70B Versatile |
+| **Frontend** | Jinja2 Templates, Vanilla CSS (Glassmorphism) |
+| **Database** | SQLite (local) / `/tmp` SQLite (Vercel) |
+| **Charts** | Chart.js |
+| **PDF Processing** | pypdf |
+| **Deployment** | Vercel (Python Serverless) |
 
 ---
 
@@ -43,201 +39,99 @@ An open-source, full-stack adaptive quiz platform that generates personalized qu
 
 ```
 AdaptiveQuiz/
+├── main.py                    # Flask app entry point
+├── requirements.txt           # Python dependencies
+├── vercel.json                # Vercel deployment config
+├── .env.example               # Environment variables template
+│
 ├── backend/
-│   ├── app.py              # Flask app factory
-│   ├── config.py           # Configuration
-│   ├── database.py         # SQLAlchemy setup
-│   ├── models.py           # DB models (User, Content, Question, etc.)
-│   ├── auth.py             # Auth endpoints (register, login, profile)
-│   ├── content.py          # Content ingestion (text, URL, PDF)
-│   ├── quiz.py             # Quiz generation, submission, adaptive logic
-│   ├── admin.py            # Admin dashboard endpoints
-│   ├── generator.py        # NLP question generator engine
-│   ├── utils.py            # Password hashing utilities
-│   ├── requirements.txt    # Python dependencies
-│   ├── Dockerfile          # Backend Docker image
-│   └── tests/
-│       └── test_api.py     # Comprehensive API tests
-├── frontend/
-│   ├── public/index.html
-│   ├── src/
-│   │   ├── App.js          # Main app with routing
-│   │   ├── api.js          # API client (axios)
-│   │   ├── App.css         # Global styles
-│   │   └── pages/
-│   │       ├── Login.js
-│   │       ├── Register.js
-│   │       ├── Profile.js
-│   │       ├── ContentUpload.js
-│   │       ├── ContentList.js
-│   │       ├── QuizSetup.js
-│   │       ├── QuizPlay.js
-│   │       ├── QuizHistory.js
-│   │       └── AdminPanel.js
-│   ├── package.json
-│   ├── Dockerfile
-│   └── nginx.conf
-├── docker-compose.yml
-└── README.md
+│   ├── __init__.py
+│   ├── models.py              # SQLAlchemy models (User, Question, QuizResult, etc.)
+│   ├── ai_engine.py           # Groq LLM integration
+│   ├── services.py            # PDF extraction, text processing
+│   └── routes.py              # All Flask routes & blueprints
+│
+└── frontend/
+    ├── static/
+    │   └── css/
+    │       └── style.css      # Glassmorphic design system
+    └── templates/
+        ├── base.html          # Base layout with navbar
+        ├── landing.html       # Landing/hero page
+        ├── login.html         # Login form
+        ├── signup.html        # Registration form
+        ├── dashboard.html     # Dashboard with stats & quiz generator
+        ├── quiz.html          # Active quiz page
+        ├── results.html       # Results with charts & AI insights
+        ├── study_hub.html     # Study hub input page
+        ├── study_hub_result.html  # Study material display
+        ├── library.html       # Quiz history table
+        └── review.html        # Mistake bank review
 ```
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.10+
-- Node.js 18+
+- Python 3.9+
+- A [Groq API Key](https://console.groq.com/) (free tier available)
 
-### Backend
+### 1. Clone & Setup
 
 ```bash
-cd backend
+git clone https://github.com/Araveenp/AdaptiveQuiz.git
+cd AdaptiveQuiz
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS/Linux
-source venv/bin/activate
-
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 ```
 
-Start the server:
-```bash
-# From the project root (AdaptiveQuiz/)
-python -m backend.app
-```
-Backend runs at **http://127.0.0.1:5000**
-
-### Frontend
+### 2. Configure Environment
 
 ```bash
-cd frontend
-npm install
-npm start
+copy .env.example .env
+# Edit .env and add your GROQ_API_KEY and a SECRET_KEY
 ```
-Frontend runs at **http://localhost:3000** and proxies API requests to the backend.
 
----
-
-## 🐳 Docker Deployment
+### 3. Run Locally
 
 ```bash
-docker-compose up --build
-```
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-
----
-
-## 📡 API Reference
-
-### Auth (`/auth`)
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | `{email, password, name?, preferred_difficulty?, subjects?}` | Register a new user |
-| POST | `/auth/login` | `{email, password}` | Login, returns JWT token |
-| GET | `/auth/profile` | — | Get user profile (🔒 JWT) |
-| PUT | `/auth/profile` | `{name?, preferred_difficulty?, subjects?}` | Update profile (🔒 JWT) |
-
-### Content (`/content`)
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/content/upload/text` | `{title, text}` | Upload raw text (🔒 JWT) |
-| POST | `/content/upload/url` | `{title?, url}` | Fetch & parse a URL (🔒 JWT) |
-| POST | `/content/upload/pdf` | `multipart: file, title?` | Upload a PDF file (🔒 JWT) |
-| GET | `/content/list` | — | List user's content (🔒 JWT) |
-| GET | `/content/<id>` | — | Get content + chunks (🔒 JWT) |
-| DELETE | `/content/<id>` | — | Delete content (🔒 JWT) |
-
-### Quiz (`/quiz`)
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| POST | `/quiz/generate` | `{content_id, num_questions?, difficulty?, types?}` | Generate quiz (🔒 JWT) |
-| POST | `/quiz/submit` | `{attempt_id, answers: [{question_id, answer, time_spent_seconds}]}` | Submit answers (🔒 JWT) |
-| GET | `/quiz/history` | — | Quiz history (🔒 JWT) |
-| GET | `/quiz/attempt/<id>` | — | Attempt details (🔒 JWT) |
-| GET | `/quiz/recommend` | — | Get adaptive recommendation (🔒 JWT) |
-
-### Admin (`/admin`)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin/stats` | Platform statistics (🔒 Admin) |
-| GET | `/admin/users` | List all users (🔒 Admin) |
-| GET | `/admin/questions?flagged=true` | List/filter questions (🔒 Admin) |
-| POST | `/admin/questions/<id>/flag` | Flag a question (🔒 JWT) |
-| DELETE | `/admin/questions/<id>` | Delete a question (🔒 Admin) |
-| POST | `/admin/feedback` | `{question_id, rating, comment}` — Submit feedback (🔒 JWT) |
-| GET | `/admin/feedback` | List all feedback (🔒 Admin) |
-| POST | `/admin/promote/<user_id>` | Promote user to admin (🔒 Admin) |
-
----
-
-## 🧪 Running Tests
-
-```bash
-# From project root
-backend\venv\Scripts\python -m pytest backend/tests/test_api.py -v
+python main.py
 ```
 
----
-
-## 📊 Database Schema
-
-```
-users
-├── id, email, password_hash, name
-├── preferred_difficulty, subjects_json, is_admin
-└── created_at
-
-contents
-├── id, user_id (FK), title, source_type, raw_text
-└── created_at
-
-content_chunks
-├── id, content_id (FK), chunk_text, chunk_index
-
-questions
-├── id, content_id (FK), question_text, question_type
-├── correct_answer, options_json, difficulty
-├── explanation, is_flagged
-└── created_at
-
-quiz_attempts
-├── id, user_id (FK), content_id (FK), difficulty
-├── total_questions, correct_count, score_percent
-├── time_taken_seconds, started_at, completed_at
-
-quiz_responses
-├── id, attempt_id (FK), question_id (FK)
-├── user_answer, is_correct, time_spent_seconds
-
-feedback
-├── id, user_id (FK), question_id (FK)
-├── rating, comment, created_at
-```
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
 ---
 
-## 🔧 Question Types & Adaptive Logic
+## 🌐 Vercel Deployment
 
-### Question Types
-1. **MCQ** — Multiple choice with auto-generated distractors
-2. **Fill-in-the-blank** — Key noun removed from sentence
-3. **True/False** — Statement with random negation
-4. **Short Answer** — Open-ended concept questions
-
-### Adaptive Difficulty
-- Tracks last 5 quiz scores
-- If average ≥ 80%: difficulty increases
-- If average < 50%: difficulty decreases
-- Otherwise: stays the same
-- User's `preferred_difficulty` is auto-updated after each quiz
+1. Push code to GitHub
+2. Import the repo on [vercel.com](https://vercel.com)
+3. Add environment variables in Vercel dashboard:
+   - `GROQ_API_KEY` — your Groq API key
+   - `SECRET_KEY` — any random string
+4. Deploy!
 
 ---
 
-## 📝 License
+## 📸 Screenshots
 
-MIT License — free for academic and personal use.
+| Landing Page | Dashboard | Quiz |
+|:---:|:---:|:---:|
+| Glassmorphic hero | Stats & mastery | AI-generated questions |
+
+---
+
+## 👨‍💻 Author
+
+**Araveen P** — [GitHub](https://github.com/Araveenp)
+
+Built for the **Infosys Springboard Virtual Internship** — Adaptive Quiz & Question Generator project.
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
