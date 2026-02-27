@@ -30,19 +30,29 @@ export default function Profile({ user, setUser }) {
   return (
     <div className="card">
       <h2>My Profile</h2>
+      <p style={{ color: "#555", marginBottom: 16 }}>Personalize your quiz experience below.</p>
       {msg && <div className="msg msg-success">{msg}</div>}
       <form onSubmit={save}>
-        <label>Name</label>
-        <input value={form.name} onChange={upd("name")} />
-        <label>Preferred Difficulty</label>
+        <label style={{ fontWeight: 600, fontSize: 14 }}>Full Name</label>
+        <input placeholder="e.g. John Doe" value={form.name} onChange={upd("name")} />
+
+        <label style={{ fontWeight: 600, fontSize: 14 }}>Preferred Difficulty Level</label>
+        <p style={{ fontSize: 12, color: "#777", marginBottom: 6, marginTop: -8 }}>
+          This sets your quiz difficulty. The system will <strong>auto-adjust</strong> based on your performance.
+        </p>
         <select value={form.preferred_difficulty} onChange={upd("preferred_difficulty")}>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
+          <option value="easy">🟢 Easy — I'm just getting started</option>
+          <option value="medium">🟡 Medium — I have some knowledge</option>
+          <option value="hard">🔴 Hard — Challenge me!</option>
         </select>
-        <label>Subjects (comma separated)</label>
-        <input value={form.subjects} onChange={upd("subjects")} />
-        <button className="btn btn-primary" type="submit">Save</button>
+
+        <label style={{ fontWeight: 600, fontSize: 14 }}>Subjects of Interest</label>
+        <p style={{ fontSize: 12, color: "#777", marginBottom: 6, marginTop: -8 }}>
+          Add topics you want to study. Separate with commas.
+        </p>
+        <input placeholder="e.g. Machine Learning, Biology, History" value={form.subjects} onChange={upd("subjects")} />
+
+        <button className="btn btn-primary" type="submit" style={{ marginTop: 8 }}>Save Changes</button>
       </form>
     </div>
   );
