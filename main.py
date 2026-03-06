@@ -42,7 +42,7 @@ def create_app():
     # Uploads
     app.config["UPLOAD_FOLDER"] = "/tmp/uploads"
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024  # 4MB (Vercel limit)
 
     # ── Extensions ───────────────────────────────────────────────
     db.init_app(app)

@@ -105,7 +105,7 @@
             <!-- PDF panel -->
             <div class="source-panel" id="panel-pdf">
                 <div class="form-group">
-                    <label class="form-label">Upload PDF</label>
+                    <label class="form-label">Upload PDF <span class="text-muted" style="font-size:0.8rem;">(max 4MB)</span></label>
                     <input type="file" name="pdf_file" class="form-control" accept=".pdf">
                 </div>
             </div>
@@ -113,7 +113,7 @@
             <!-- Image panel -->
             <div class="source-panel" id="panel-image">
                 <div class="form-group">
-                    <label class="form-label">Upload Image</label>
+                    <label class="form-label">Upload Image <span class="text-muted" style="font-size:0.8rem;">(max 4MB)</span></label>
                     <input type="file" name="image_file" class="form-control" accept="image/*">
                 </div>
             </div>
@@ -192,7 +192,16 @@ const tips = [
     'This usually takes 10-20 seconds...'
 ];
 
-quizForm.addEventListener('submit', function() {
+quizForm.addEventListener('submit', function(e) {
+    // Check file size before submitting
+    const fileInputs = quizForm.querySelectorAll('input[type="file"]');
+    for (const input of fileInputs) {
+        if (input.files.length > 0 && input.files[0].size > 4 * 1024 * 1024) {
+            e.preventDefault();
+            alert('File is too large! Maximum size is 4MB. Please use a smaller file.');
+            return;
+        }
+    }
     loadingOverlay.style.display = 'flex';
     document.getElementById('generateBtn').disabled = true;
     let tipIdx = 0;
