@@ -1,6 +1,6 @@
-# 🧠 AdaptiveQuiz — AI-Powered Adaptive Quiz & Study Platform
+# 🧠 AdaptiveQuiz — AI-Powered Adaptive Quiz Platform
 
-An intelligent, AI-powered quiz and study platform that generates personalised questions, study materials, and performance analytics using **Groq LLM (Llama 3.3)**.
+An intelligent, AI-powered quiz platform that generates personalised questions and performance analytics using **OpenRouter LLM (Llama 3.3)**.
 
 Built as a capstone project for the **Infosys Springboard Virtual Internship**.
 
@@ -11,13 +11,15 @@ Built as a capstone project for the **Infosys Springboard Virtual Internship**.
 | Feature | Description |
 |---------|-------------|
 | 🎯 **AI Quiz Generation** | Generate MCQ & True/False questions from topics, raw text, or PDF uploads |
-| 📚 **Study Hub** | Get AI-generated shorthand notes, ELI10 explanations, mnemonic stories, key concepts & flashcards |
 | 📊 **Adaptive Difficulty** | Questions adapt based on your performance history |
+| 📧 **Email OTP Verification** | Secure signup with email OTP verification |
 | 🏆 **Streak Tracking** | Daily login streaks and gamification |
 | 🔍 **Mistake Bank** | Review wrong answers and re-quiz on weak areas |
 | 📈 **Performance Analytics** | Score history charts, topic mastery tracking, AI insights |
 | 👤 **Guest Mode** | Try without creating an account |
+| 📄 **Client-Side PDF Processing** | PDFs are parsed in the browser — no file size limits |
 | 🎨 **Glassmorphic UI** | Modern dark-themed design with glass effects |
+| ⏳ **Loading Animation** | Smooth loading overlay while AI generates your quiz |
 
 ---
 
@@ -26,11 +28,11 @@ Built as a capstone project for the **Infosys Springboard Virtual Internship**.
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Flask 3.0, Flask-Login, Flask-SQLAlchemy |
-| **AI/LLM** | Groq API — Llama 3.3 70B Versatile |
-| **Frontend** | Jinja2 Templates, Vanilla CSS (Glassmorphism) |
-| **Database** | SQLite (local) / `/tmp` SQLite (Vercel) |
+| **AI/LLM** | OpenRouter API — Llama 3.3 70B Instruct |
+| **Frontend** | Jinja2 Templates, Vanilla CSS (Glassmorphism), pdf.js |
+| **Database** | PostgreSQL (Neon, production) / SQLite (local dev) |
 | **Charts** | Chart.js |
-| **PDF Processing** | pypdf |
+| **Email** | Python smtplib (Gmail SMTP for OTP) |
 | **Deployment** | Vercel (Python Serverless) |
 
 ---
@@ -47,8 +49,8 @@ AdaptiveQuiz/
 ├── backend/
 │   ├── __init__.py
 │   ├── models.py              # SQLAlchemy models (User, Question, QuizResult, etc.)
-│   ├── ai_engine.py           # Groq LLM integration
-│   ├── services.py            # PDF extraction, text processing
+│   ├── ai_engine.py           # OpenRouter LLM integration
+│   ├── services.py            # PDF extraction, text processing, OTP email
 │   └── routes.py              # All Flask routes & blueprints
 │
 └── frontend/
@@ -60,11 +62,10 @@ AdaptiveQuiz/
         ├── landing.html       # Landing/hero page
         ├── login.html         # Login form
         ├── signup.html        # Registration form
+        ├── verify_otp.html    # OTP verification page
         ├── dashboard.html     # Dashboard with stats & quiz generator
         ├── quiz.html          # Active quiz page
         ├── results.html       # Results with charts & AI insights
-        ├── study_hub.html     # Study hub input page
-        ├── study_hub_result.html  # Study material display
         ├── library.html       # Quiz history table
         └── review.html        # Mistake bank review
 ```
@@ -75,7 +76,8 @@ AdaptiveQuiz/
 
 ### Prerequisites
 - Python 3.9+
-- A [Groq API Key](https://console.groq.com/) (free tier available)
+- An [OpenRouter API Key](https://openrouter.ai/keys) (free credits available)
+- A Gmail account with [App Password](https://myaccount.google.com/apppasswords) (for OTP emails)
 
 ### 1. Clone & Setup
 
@@ -92,7 +94,12 @@ pip install -r requirements.txt
 
 ```bash
 copy .env.example .env
-# Edit .env and add your GROQ_API_KEY and a SECRET_KEY
+# Edit .env and add your keys:
+#   OPENROUTER_API_KEY=sk-or-v1-...
+#   SECRET_KEY=any-random-string
+#   SMTP_EMAIL=your_gmail@gmail.com
+#   SMTP_PASSWORD=your_gmail_app_password
+#   DATABASE_URL=postgresql://... (optional, uses SQLite locally)
 ```
 
 ### 3. Run Locally
@@ -110,8 +117,11 @@ Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 1. Push code to GitHub
 2. Import the repo on [vercel.com](https://vercel.com)
 3. Add environment variables in Vercel dashboard:
-   - `GROQ_API_KEY` — your Groq API key
+   - `OPENROUTER_API_KEY` — your OpenRouter API key
    - `SECRET_KEY` — any random string
+   - `SMTP_EMAIL` — Gmail address for sending OTPs
+   - `SMTP_PASSWORD` — Gmail App Password
+   - `DATABASE_URL` — PostgreSQL connection string (e.g. from [neon.tech](https://neon.tech))
 4. Deploy!
 
 ---
