@@ -1,5 +1,9 @@
-"""Utility services: PDF extraction, image OCR, text processing."""
+"""Utility services: PDF extraction, image OCR, text processing, OTP email."""
 import os
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 def extract_text_from_pdf(file_obj, upload_folder="/tmp/uploads"):
@@ -51,3 +55,53 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)
     return text.strip()
+
+
+# ── OTP Email ────────────────────────────────────────────────────
+
+def generate_otp():
+    """Generate a 6-digit OTP."""
+    return str(random.randint(100000, 999999))
+
+
+def send_otp_email(to_email, otp):
+    """Send OTP to user's email via Gmail SMTP using Python's smtplib."""
+    smtp_email = os.getenv("SMTP_EMAIL", "")
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+
+    if not smtp_email or not smtp_password:
+        print("[OTP] SMTP_EMAIL or SMTP_PASSWORD not set — cannot send OTP")
+        return False
+
+    subject = "AdaptiveQuiz — Your Verification Code"
+    html_body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:30px;
+                background:#0a0a1a;color:#fff;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
+        <h2 style="color:#a29bfe;margin-bottom:10px;">🧠 AdaptiveQuiz</h2>
+        <p style="color:#ccc;">Your verification code is:</p>
+        <div style="font-size:36px;font-weight:800;letter-spacing:8px;color:#6c5ce7;
+                    text-align:center;padding:20px;margin:20px 0;background:rgba(108,92,231,0.1);
+                    border-radius:12px;border:1px solid rgba(108,92,231,0.3);">
+            {otp}
+        </div>
+        <p style="color:#999;font-size:14px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+    </div>
+    """
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = smtp_email
+    msg["To"] = to_email
+    msg.attach(MIMEText(f"Your AdaptiveQuiz verification code is: {otp}", "plain"))
+    msg.attach(MIMEText(html_body, "html"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(smtp_email, smtp_password)
+            server.sendmail(smtp_email, to_email, msg.as_string())
+        print(f"[OTP] Sent to {to_email}")
+        return True
+    except Exception as e:
+        print(f"[OTP] Email send error: {e}")
+        return False

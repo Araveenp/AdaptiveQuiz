@@ -12,7 +12,7 @@ from sqlalchemy import or_
 
 from backend.models import User, Question, QuizResult, TopicMastery, MistakeBank, db
 from backend.ai_engine import AIEngine
-from backend.services import extract_text_from_pdf, extract_text_from_image, clean_text
+from backend.services import extract_text_from_pdf, extract_text_from_image, clean_text, generate_otp, send_otp_email
 
 routes_bp = Blueprint("routes", __name__)
 
@@ -93,15 +93,81 @@ def signup():
             flash("Username or email already taken!", "danger")
             return redirect(url_for("routes.signup"))
 
-        new_user = User(email=email, username=username)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
+        # Generate and send OTP
+        otp = generate_otp()
+        sent = send_otp_email(email, otp)
 
-        flash("Account created! Please log in.", "success")
-        return redirect(url_for("routes.login"))
+        if not sent:
+            flash("Could not send verification email. Please try again.", "danger")
+            return redirect(url_for("routes.signup"))
+
+        # Store pending signup in session
+        session["pending_signup"] = {
+            "username": username,
+            "email": email,
+            "password": password,
+            "otp": otp,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+
+        flash(f"Verification code sent to {email}! Check your inbox.", "success")
+        return redirect(url_for("routes.verify_otp"))
 
     return render_template("signup.html")
+
+
+@routes_bp.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    pending = session.get("pending_signup")
+    if not pending:
+        flash("No pending signup. Please sign up first.", "warning")
+        return redirect(url_for("routes.signup"))
+
+    if request.method == "POST":
+        entered_otp = request.form.get("otp", "").strip()
+
+        # Check OTP expiry (10 minutes)
+        created_at = datetime.fromisoformat(pending["created_at"])
+        if datetime.utcnow() - created_at > timedelta(minutes=10):
+            session.pop("pending_signup", None)
+            flash("OTP expired. Please sign up again.", "danger")
+            return redirect(url_for("routes.signup"))
+
+        if entered_otp == pending["otp"]:
+            # OTP correct — create the user
+            new_user = User(email=pending["email"], username=pending["username"])
+            new_user.set_password(pending["password"])
+            db.session.add(new_user)
+            db.session.commit()
+            session.pop("pending_signup", None)
+
+            flash("Email verified! Account created. Please log in.", "success")
+            return redirect(url_for("routes.login"))
+        else:
+            flash("Invalid OTP. Please try again.", "danger")
+
+    return render_template("verify_otp.html", email=pending.get("email", ""))
+
+
+@routes_bp.route("/resend-otp", methods=["POST"])
+def resend_otp():
+    pending = session.get("pending_signup")
+    if not pending:
+        flash("No pending signup found.", "warning")
+        return redirect(url_for("routes.signup"))
+
+    otp = generate_otp()
+    sent = send_otp_email(pending["email"], otp)
+
+    if sent:
+        pending["otp"] = otp
+        pending["created_at"] = datetime.utcnow().isoformat()
+        session["pending_signup"] = pending
+        flash("New verification code sent!", "success")
+    else:
+        flash("Could not resend OTP. Please try again.", "danger")
+
+    return redirect(url_for("routes.verify_otp"))
 
 
 @routes_bp.route("/guest-login")
