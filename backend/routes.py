@@ -147,10 +147,7 @@ def dashboard():
         user_streak = current_user.streak or 0
         mastery_data = TopicMastery.query.filter_by(user_id=current_user.id).all()
 
-    try:
-        fun_fact = ai.get_fun_fact()
-    except Exception:
-        fun_fact = "Learning is a superpower — keep going! 🚀"
+    fun_fact = "Learning is a superpower — keep going! 🚀"
 
     return render_template(
         "dashboard.html",
@@ -165,53 +162,6 @@ def dashboard():
         total_quizzes=len(QuizResult.query.filter_by(
             user_id=current_user.id).all()) if not is_guest and current_user.is_authenticated else 0,
     )
-
-
-# ═══════════════════════════════════════════════════════════════════
-# STUDY HUB
-# ═══════════════════════════════════════════════════════════════════
-
-@routes_bp.route("/study-hub", methods=["GET", "POST"])
-def study_hub():
-    if not is_allowed():
-        return redirect(url_for("routes.login"))
-
-    if request.method == "POST":
-        source_type = request.form.get("source_type")
-        content = ""
-
-        try:
-            if source_type == "pdf":
-                f = request.files.get("pdf_file")
-                if f:
-                    content = extract_text_from_pdf(f)
-            elif source_type == "text":
-                content = request.form.get("raw_text", "")
-            elif source_type == "topic":
-                topic = request.form.get("topic_name", "")
-                content = f"Comprehensive overview of: {topic}"
-            elif source_type == "image":
-                f = request.files.get("image_file")
-                if f:
-                    content = extract_text_from_image(f)
-
-            content = clean_text(content)
-            if not content:
-                flash("No content could be extracted. Please try again.", "warning")
-                return redirect(url_for("routes.study_hub"))
-
-            study_material = ai.generate_study_material(content)
-            session["study_content"] = content
-            return render_template(
-                "study_hub_result.html",
-                material=study_material,
-                source_type=source_type,
-            )
-        except Exception as e:
-            print(f"Study Hub error: {e}")
-            flash("An error occurred while generating study material.", "danger")
-
-    return render_template("study_hub.html")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -282,11 +232,6 @@ def handle_generation():
             if not ai.client:
                 flash("OPENROUTER_API_KEY is not configured. Please add your API key to the .env file.", "danger")
                 return redirect(url_for("routes.dashboard"))
-
-            # AI-detected topic if possible
-            detected = ai.detect_topic(content)
-            if detected and detected != "General Study":
-                mastery_label = detected
 
             questions = ai.generate_questions(content, count, q_format, difficulty)
             if not questions:

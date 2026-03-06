@@ -29,7 +29,7 @@
             {% elif accuracy >= 50 %}
                 <span class="badge badge-warning" style="font-size:1rem; padding:0.5rem 1rem;">🥉 Intermediate — Keep Improving!</span>
             {% else %}
-                <span class="badge badge-danger" style="font-size:1rem; padding:0.5rem 1rem;">📚 Needs Review — Try Study Hub!</span>
+                <span class="badge badge-danger" style="font-size:1rem; padding:0.5rem 1rem;">📚 Needs Review — Keep Practicing!</span>
             {% endif %}
         </div>
     </div>
@@ -51,9 +51,9 @@
                     {% if accuracy >= 80 %}
                         Excellent performance! You've shown strong mastery of this material. Consider challenging yourself with harder difficulty or a new topic.
                     {% elif accuracy >= 50 %}
-                        Good attempt! Review the questions you missed below and try the Study Hub for deeper understanding.
+                        Good attempt! Review the questions you missed below for deeper understanding.
                     {% else %}
-                        Don't worry — learning takes practice! Use the Study Hub to generate notes and mnemonics, then re-attempt this topic.
+                        Don't worry — learning takes practice! Review the questions below, then re-attempt this topic.
                     {% endif %}
                 </p>
             {% endif %}
@@ -89,7 +89,6 @@
     <!-- Actions -->
     <div class="flex-center gap-2 mb-3">
         <a href="{{ url_for('routes.dashboard') }}" class="btn btn-primary">📊 Back to Dashboard</a>
-        <a href="{{ url_for('routes.study_hub') }}" class="btn btn-secondary">⚡ Open Study Hub</a>
         {% if not is_guest %}
         <a href="{{ url_for('routes.review_mistakes') }}" class="btn btn-secondary">🔍 Review Mistakes</a>
         {% endif %}

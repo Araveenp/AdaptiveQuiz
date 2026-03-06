@@ -17,13 +17,11 @@
         <div class="nav-links">
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('routes.dashboard') }}" class="nav-link">📊 Dashboard</a>
-                <a href="{{ url_for('routes.study_hub') }}" class="nav-link">⚡ Study Hub</a>
                 <a href="{{ url_for('routes.library') }}" class="nav-link">📚 Library</a>
                 <a href="{{ url_for('routes.review_mistakes') }}" class="nav-link">🔍 Mistakes</a>
                 <a href="{{ url_for('routes.logout') }}" class="nav-link">🚪 Logout</a>
             {% elif session.get('is_guest') %}
                 <a href="{{ url_for('routes.dashboard') }}" class="nav-link">📊 Dashboard</a>
-                <a href="{{ url_for('routes.study_hub') }}" class="nav-link">⚡ Study Hub</a>
                 <a href="{{ url_for('routes.logout') }}" class="nav-link">🚪 Exit Guest</a>
             {% else %}
                 <a href="{{ url_for('routes.login') }}" class="nav-link">🔑 Login</a>

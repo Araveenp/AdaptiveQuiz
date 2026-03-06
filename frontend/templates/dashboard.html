@@ -10,7 +10,6 @@
             <p class="text-secondary mt-1">{{ fun_fact }}</p>
         </div>
         <div class="flex gap-2">
-            <a href="{{ url_for('routes.study_hub') }}" class="btn btn-secondary">⚡ Study Hub</a>
             <a href="#generate" class="btn btn-primary">🎯 New Quiz</a>
         </div>
     </div>
@@ -60,7 +59,6 @@
         <div class="glass">
             <h3 class="mb-2">⚡ Quick Actions</h3>
             <div class="flex-col gap-2">
-                <a href="{{ url_for('routes.study_hub') }}" class="btn btn-secondary" style="width:100%;">📖 Open Study Hub</a>
                 {% if not is_guest %}
                 <a href="{{ url_for('routes.review_mistakes') }}" class="btn btn-secondary" style="width:100%;">🔍 Review Mistakes ({{ mistake_count }})</a>
                 <a href="{{ url_for('routes.library') }}" class="btn btn-secondary" style="width:100%;">📚 Quiz Library</a>
