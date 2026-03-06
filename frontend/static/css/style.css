@@ -57,6 +57,59 @@ h3 { font-size: 1.25rem; font-weight: 600; }
 a { color: var(--primary-light); text-decoration: none; transition: 0.2s; }
 a:hover { color: var(--secondary); }
 
+/* ── Loading Overlay ──────────────────────────────────────── */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(6, 6, 15, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 3rem 4rem;
+    max-width: 420px;
+}
+
+.loading-spinner {
+    width: 56px; height: 56px;
+    margin: 0 auto;
+    border: 4px solid rgba(108, 92, 231, 0.2);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.loading-dots span {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+}
+
 /* ── Glass Card ───────────────────────────────────────────── */
 .glass {
     background: var(--glass-bg);

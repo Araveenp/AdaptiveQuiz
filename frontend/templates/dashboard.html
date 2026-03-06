@@ -151,8 +151,20 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">🚀 Generate Quiz</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="generateBtn" style="width:100%;">🚀 Generate Quiz</button>
         </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="loading-content glass">
+        <div class="loading-spinner"></div>
+        <h3 class="mt-2" style="color:var(--primary-light);">Generating Your Quiz...</h3>
+        <p class="text-secondary mt-1" id="loadingTip">AI is crafting questions from your content</p>
+        <div class="loading-dots mt-2">
+            <span></span><span></span><span></span>
+        </div>
     </div>
 </div>
 
@@ -167,5 +179,27 @@ function switchSource(type) {
     document.getElementById('panel-' + type).classList.add('active');
     document.getElementById('source_type').value = type;
 }
+
+// Loading animation on form submit
+const quizForm = document.getElementById('quizForm');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const tips = [
+    'AI is crafting questions from your content',
+    'Analyzing difficulty levels...',
+    'Building answer explanations...',
+    'Almost there — finalizing your quiz...',
+    'Creating challenging options...',
+    'This usually takes 10-20 seconds...'
+];
+
+quizForm.addEventListener('submit', function() {
+    loadingOverlay.style.display = 'flex';
+    document.getElementById('generateBtn').disabled = true;
+    let tipIdx = 0;
+    setInterval(function() {
+        tipIdx = (tipIdx + 1) % tips.length;
+        document.getElementById('loadingTip').textContent = tips[tipIdx];
+    }, 3000);
+});
 </script>
 {% endblock %}
