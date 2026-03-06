@@ -31,11 +31,11 @@ def is_allowed():
 
 @routes_bp.route("/health")
 def health_check():
-    key = os.getenv("GROQ_API_KEY", "")
+    key = os.getenv("OPENROUTER_API_KEY", "")
     return jsonify({
         "status": "ok",
-        "groq_key_set": bool(key),
-        "groq_key_preview": f"...{key[-6:]}" if len(key) > 6 else "NOT SET",
+        "openrouter_key_set": bool(key),
+        "openrouter_key_preview": f"...{key[-6:]}" if len(key) > 6 else "NOT SET",
         "ai_client_ready": ai.client is not None,
     })
 
@@ -278,6 +278,11 @@ def handle_generation():
                 flash("No content to generate questions from!", "danger")
                 return redirect(url_for("routes.dashboard"))
 
+            # Check API key before attempting generation
+            if not ai.client:
+                flash("OPENROUTER_API_KEY is not configured. Please add your API key to the .env file.", "danger")
+                return redirect(url_for("routes.dashboard"))
+
             # AI-detected topic if possible
             detected = ai.detect_topic(content)
             if detected and detected != "General Study":
@@ -285,7 +290,7 @@ def handle_generation():
 
             questions = ai.generate_questions(content, count, q_format, difficulty)
             if not questions:
-                flash("AI couldn't generate questions. Try different content.", "danger")
+                flash("AI couldn't generate questions. Try different content or check your API key.", "danger")
                 return redirect(url_for("routes.dashboard"))
 
             for q_data in questions:

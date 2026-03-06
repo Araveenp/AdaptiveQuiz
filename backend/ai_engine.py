@@ -1,29 +1,32 @@
-"""AI Engine — Groq LLM integration for quiz generation & study aids."""
+"""AI Engine — OpenRouter LLM integration for quiz generation & study aids."""
 import json
 import os
 import time
-from groq import Groq
+from openai import OpenAI
 
 
 class AIEngine:
-    """Handles all AI operations via Groq (Llama 3.3)."""
+    """Handles all AI operations via OpenRouter."""
 
     def __init__(self, api_key=None):
-        self.api_key = api_key or os.getenv("GROQ_API_KEY", "")
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
         self._client = None
-        self.MODEL = "llama-3.3-70b-versatile"
-        self.FAST_MODEL = "llama-3.1-8b-instant"
+        self.MODEL = "meta-llama/llama-3.3-70b-instruct"
+        self.FAST_MODEL = "meta-llama/llama-3.1-8b-instruct"
 
     @property
     def client(self):
-        """Lazy-init Groq client so env vars are loaded first."""
+        """Lazy-init OpenRouter client (OpenAI-compatible) so env vars are loaded first."""
         if self._client is None:
-            key = self.api_key or os.getenv("GROQ_API_KEY", "")
+            key = self.api_key or os.getenv("OPENROUTER_API_KEY", "")
             if key:
-                self._client = Groq(api_key=key)
-                print(f"[AIEngine] Groq client initialized (key: ...{key[-6:]})")
+                self._client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=key,
+                )
+                print(f"[AIEngine] OpenRouter client initialized (key: ...{key[-6:]})")
             else:
-                print("[AIEngine] WARNING: No GROQ_API_KEY found!")
+                print("[AIEngine] WARNING: No OPENROUTER_API_KEY found!")
         return self._client
 
     def _request(self, func, *args, **kwargs):
@@ -37,9 +40,34 @@ class AIEngine:
                     time.sleep(1.5)
         return None
 
+    @staticmethod
+    def _extract_json(text):
+        """Extract JSON from a response that might be wrapped in markdown code blocks."""
+        import re
+        # Try raw parse first
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        # Try extracting from ```json ... ``` blocks
+        match = re.search(r'```(?:json)?\s*([\s\S]*?)```', text)
+        if match:
+            try:
+                return json.loads(match.group(1).strip())
+            except json.JSONDecodeError:
+                pass
+        # Try finding first { ... } block
+        match = re.search(r'(\{[\s\S]*\})', text)
+        if match:
+            try:
+                return json.loads(match.group(1))
+            except json.JSONDecodeError:
+                pass
+        return None
+
     # ── Quiz Generation ──────────────────────────────────────────────
     def generate_questions(self, content, count=5, q_format="mcq", difficulty="medium"):
-        """Generate quiz questions from content using Llama 3.3."""
+        """Generate quiz questions from content via OpenRouter."""
         if not self.client:
             print("[AIEngine] No client — cannot generate questions")
             return []
@@ -89,14 +117,15 @@ class AIEngine:
                     {"role": "user", "content": user_prompt},
                 ],
                 model=self.MODEL,
-                response_format={"type": "json_object"},
                 temperature=0.3,
-                timeout=60.0,
             )
             if completion:
                 raw = completion.choices[0].message.content
                 print(f"[AIEngine] Got response ({len(raw)} chars)")
-                data = json.loads(raw)
+                data = self._extract_json(raw)
+                if not data:
+                    print(f"[AIEngine] Failed to parse JSON from response")
+                    return []
                 questions = data.get("questions", [])
                 print(f"[AIEngine] Parsed {len(questions)} questions")
                 return questions
@@ -127,12 +156,15 @@ class AIEngine:
             response = self._request(
                 self.client.chat.completions.create,
                 model=self.MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                timeout=35.0,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant. Output ONLY valid JSON."},
+                    {"role": "user", "content": prompt},
+                ],
             )
             if response:
-                return json.loads(response.choices[0].message.content)
+                data = self._extract_json(response.choices[0].message.content)
+                if data:
+                    return data
         except Exception:
             pass
         return self._fallback_study()
@@ -168,7 +200,6 @@ class AIEngine:
                 messages=[{"role": "user", "content": prompt}],
                 model=self.FAST_MODEL,
                 temperature=0.7,
-                timeout=15.0,
             )
             if completion:
                 return completion.choices[0].message.content
@@ -186,7 +217,6 @@ class AIEngine:
                 self.client.chat.completions.create,
                 messages=[{"role": "user", "content": "Share one amazing, short tech or science fact in one sentence."}],
                 model=self.FAST_MODEL,
-                timeout=10.0,
             )
             if completion:
                 return completion.choices[0].message.content
@@ -204,7 +234,6 @@ class AIEngine:
                 self.client.chat.completions.create,
                 messages=[{"role": "user", "content": f"Identify the main subject of this text. Return ONLY the topic name in 2-4 words:\n{content[:1000]}"}],
                 model=self.FAST_MODEL,
-                timeout=10.0,
             )
             if completion:
                 return completion.choices[0].message.content.strip().replace('"', '')
