@@ -32,6 +32,20 @@ def create_app():
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
         app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+        # ── Connection-pool hardening (fixes dropped SSL connections) ──
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,        # test connection before every checkout
+            "pool_recycle": 280,           # recycle connections every ~5 min
+            "pool_size": 5,
+            "max_overflow": 10,
+            "connect_args": {
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5,
+            },
+        }
     else:
         if os.environ.get("VERCEL"):
             db_path = os.path.join(tempfile.gettempdir(), "adaptive_quiz.db")

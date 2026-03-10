@@ -10,11 +10,28 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import or_
 
+from sqlalchemy.exc import OperationalError, DisconnectionError
+
 from backend.models import User, Question, QuizResult, TopicMastery, MistakeBank, db
 from backend.ai_engine import AIEngine
 from backend.services import extract_text_from_pdf, extract_text_from_image, clean_text, generate_otp, send_otp_email
 
 routes_bp = Blueprint("routes", __name__)
+
+
+def safe_commit(max_retries=2):
+    """Commit with automatic retry on dropped DB connections."""
+    for attempt in range(max_retries + 1):
+        try:
+            db.session.commit()
+            return
+        except (OperationalError, DisconnectionError) as e:
+            db.session.rollback()
+            if attempt < max_retries:
+                print(f"DB connection lost, retrying commit (attempt {attempt + 1})…")
+                db.session.remove()          # dispose of the dead session
+            else:
+                raise
 
 # Initialize AI engine (lazy — key resolved at first use)
 ai = AIEngine()
@@ -138,7 +155,7 @@ def verify_otp():
             new_user = User(email=pending["email"], username=pending["username"])
             new_user.set_password(pending["password"])
             db.session.add(new_user)
-            db.session.commit()
+            safe_commit()
             session.pop("pending_signup", None)
 
             flash("Email verified! Account created. Please log in.", "success")
@@ -269,7 +286,7 @@ def handle_generation():
                 db.session.add(new_q)
                 db.session.flush()
                 q_ids.append(new_q.id)
-            db.session.commit()
+            safe_commit()
             mastery_label = "Mistake Review"
         else:
             if source_type == "pdf":
@@ -318,7 +335,7 @@ def handle_generation():
                 db.session.add(new_q)
                 db.session.flush()
                 q_ids.append(new_q.id)
-            db.session.commit()
+            safe_commit()
 
         if not q_ids:
             flash("No questions generated.", "warning")
@@ -398,7 +415,7 @@ def submit_answer():
             explanation=question.explanation,
         )
         db.session.add(mistake)
-        db.session.commit()
+        safe_commit()
 
     # Next question or results
     session["current_idx"] = session.get("current_idx", 0) + 1
@@ -466,7 +483,7 @@ def results():
                 db.session.add(mastery)
             mastery.correct_count += score
             mastery.total_count += total
-            db.session.commit()
+            safe_commit()
 
             # History for chart
             past = QuizResult.query.filter_by(
@@ -544,6 +561,6 @@ def delete_mistake(m_id):
     m = MistakeBank.query.get_or_404(m_id)
     if m.user_id == current_user.id:
         db.session.delete(m)
-        db.session.commit()
+        safe_commit()
         flash("Mistake removed!", "success")
     return redirect(url_for("routes.review_mistakes"))
