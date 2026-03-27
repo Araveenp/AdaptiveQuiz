@@ -128,9 +128,9 @@ Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
 ## 📸 Screenshots
 
-| Landing Page | Dashboard | Quiz |
-|:---:|:---:|:---:|
-| Glassmorphic hero | Stats & mastery | AI-generated questions |
+| Landing Page <img width="1919" height="936" alt="image" src="https://github.com/user-attachments/assets/31244116-9c9a-4d86-b836-a6bf4135194a" />
+| Dashboard <img width="1919" height="938" alt="image" src="https://github.com/user-attachments/assets/8569e69d-fd7f-460d-a9db-e43a8de3bfe8" />
+| Quiz <img width="1912" height="938" alt="image" src="https://github.com/user-attachments/assets/2f9b08bd-4bc9-49ce-a73b-bdaa84693b0c" />
 
 ---
 
