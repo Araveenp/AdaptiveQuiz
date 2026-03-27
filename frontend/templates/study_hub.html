@@ -15,7 +15,7 @@
             <button class="source-tab" onclick="switchSrc('image')">🖼️ Image</button>
         </div>
 
-        <form method="POST" action="{{ url_for('routes.study_hub') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('routes.study_hub') }}" enctype="multipart/form-data" id="studyForm">
             <input type="hidden" name="source_type" id="src_type" value="topic">
 
             <div class="source-panel active" id="sp-topic">
@@ -34,20 +34,34 @@
 
             <div class="source-panel" id="sp-pdf">
                 <div class="form-group">
-                    <label class="form-label">Upload PDF</label>
-                    <input type="file" name="pdf_file" class="form-control" accept=".pdf">
+                    <label class="form-label">Upload PDF <span class="text-muted" style="font-size:0.8rem;">(processed in browser)</span></label>
+                    <input type="file" id="studyPdfInput" class="form-control" accept=".pdf">
+                    <input type="hidden" id="studyPdfText">
+                    <p id="studyPdfStatus" class="text-muted mt-1" style="font-size:0.85rem; display:none;"></p>
                 </div>
             </div>
 
             <div class="source-panel" id="sp-image">
                 <div class="form-group">
-                    <label class="form-label">Upload Image</label>
+                    <label class="form-label">Upload Image <span class="text-muted" style="font-size:0.8rem;">(max 4MB)</span></label>
                     <input type="file" name="image_file" class="form-control" accept="image/*">
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg mt-2" style="width:100%;">🧠 Generate Study Material</button>
+            <button type="submit" class="btn btn-primary btn-lg mt-2" id="studyBtn" style="width:100%;">🧠 Generate Study Material</button>
         </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="studyLoading" class="loading-overlay" style="display:none;">
+    <div class="loading-content glass">
+        <div class="loading-spinner"></div>
+        <h3 class="mt-2" style="color:var(--primary-light);">Generating Study Material...</h3>
+        <p class="text-secondary mt-1" id="studyTip">AI is analyzing your content</p>
+        <div class="loading-dots mt-2">
+            <span></span><span></span><span></span>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -61,5 +75,82 @@ function switchSrc(type) {
     document.getElementById('sp-' + type).classList.add('active');
     document.getElementById('src_type').value = type;
 }
+
+// Client-side PDF extraction
+const studyPdfInput = document.getElementById('studyPdfInput');
+if (studyPdfInput) {
+    studyPdfInput.addEventListener('change', async function() {
+        const file = this.files[0];
+        if (!file) return;
+        const status = document.getElementById('studyPdfStatus');
+        status.style.display = 'block';
+        status.textContent = '⏳ Reading PDF...';
+        status.style.color = 'var(--warning)';
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                status.textContent = `⏳ Processing page ${i} of ${pdf.numPages}...`;
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+            }
+            document.getElementById('studyPdfText').value = fullText.trim();
+            status.textContent = `✅ PDF processed! ${pdf.numPages} page(s), ${fullText.trim().split(/\s+/).length} words extracted.`;
+            status.style.color = 'var(--success)';
+        } catch (err) {
+            console.error('PDF extraction error:', err);
+            status.textContent = '❌ Could not read PDF. Try a different file.';
+            status.style.color = 'var(--danger)';
+        }
+    });
+}
+
+// Form submit handler
+const studyForm = document.getElementById('studyForm');
+const studyLoading = document.getElementById('studyLoading');
+const studyTips = [
+    'AI is analyzing your content',
+    'Creating shorthand notes...',
+    'Building flashcards...',
+    'Generating ELI10 explanation...',
+    'Crafting mnemonic story...',
+    'Almost there...'
+];
+
+studyForm.addEventListener('submit', function(e) {
+    const sourceType = document.getElementById('src_type').value;
+
+    // Image size check
+    const imgInput = studyForm.querySelector('input[name="image_file"]');
+    if (sourceType === 'image' && imgInput && imgInput.files.length > 0 && imgInput.files[0].size > 4 * 1024 * 1024) {
+        e.preventDefault();
+        alert('Image is too large! Maximum size is 4MB.');
+        return;
+    }
+
+    // PDF: copy extracted text to raw_text and switch source to text
+    if (sourceType === 'pdf') {
+        const extracted = document.getElementById('studyPdfText').value;
+        if (!extracted) {
+            e.preventDefault();
+            alert('Please upload a PDF first and wait for it to be processed.');
+            return;
+        }
+        document.getElementById('src_type').value = 'text';
+        document.querySelector('#sp-text textarea[name="raw_text"]').value = extracted;
+    }
+
+    studyLoading.style.display = 'flex';
+    document.getElementById('studyBtn').disabled = true;
+    let tipIdx = 0;
+    setInterval(function() {
+        tipIdx = (tipIdx + 1) % studyTips.length;
+        document.getElementById('studyTip').textContent = studyTips[tipIdx];
+    }, 3000);
+});
 </script>
 {% endblock %}

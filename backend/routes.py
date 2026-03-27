@@ -564,3 +564,59 @@ def delete_mistake(m_id):
         safe_commit()
         flash("Mistake removed!", "success")
     return redirect(url_for("routes.review_mistakes"))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# AI STUDY HUB
+# ═══════════════════════════════════════════════════════════════════
+
+@routes_bp.route("/study-hub", methods=["GET", "POST"])
+def study_hub():
+    if not is_allowed():
+        return redirect(url_for("routes.login"))
+
+    if request.method == "GET":
+        return render_template("study_hub.html")
+
+    # POST — generate study material
+    source_type = request.form.get("source_type", "topic")
+    content = ""
+
+    try:
+        if source_type == "topic":
+            topic_name = request.form.get("topic_name", "").strip()
+            if not topic_name:
+                flash("Please enter a topic.", "danger")
+                return redirect(url_for("routes.study_hub"))
+            content = f"Create comprehensive study material about: {topic_name}"
+        elif source_type == "text":
+            content = request.form.get("raw_text", "").strip()
+        elif source_type == "pdf":
+            content = request.form.get("raw_text", "").strip()  # client-side extracted
+            if not content:
+                f = request.files.get("pdf_file")
+                if f and f.filename:
+                    content = extract_text_from_pdf(f)
+        elif source_type == "image":
+            f = request.files.get("image_file")
+            if f and f.filename:
+                content = extract_text_from_image(f)
+
+        content = clean_text(content)
+        if not content:
+            flash("No content provided. Please enter text, upload a file, or specify a topic.", "danger")
+            return redirect(url_for("routes.study_hub"))
+
+        if not ai.client:
+            flash("OPENROUTER_API_KEY is not configured. Please add your API key.", "danger")
+            return redirect(url_for("routes.study_hub"))
+
+        material = ai.generate_study_material(content)
+        return render_template("study_hub_result.html", material=material)
+
+    except Exception as e:
+        print(f"Study Hub error: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f"Error generating study material: {str(e)}", "danger")
+        return redirect(url_for("routes.study_hub"))

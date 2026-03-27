@@ -59,6 +59,7 @@
         <div class="glass">
             <h3 class="mb-2">⚡ Quick Actions</h3>
             <div class="flex-col gap-2">
+                <a href="{{ url_for('routes.study_hub') }}" class="btn btn-primary" style="width:100%;">⚡ AI Study Hub</a>
                 {% if not is_guest %}
                 <a href="{{ url_for('routes.review_mistakes') }}" class="btn btn-secondary" style="width:100%;">🔍 Review Mistakes ({{ mistake_count }})</a>
                 <a href="{{ url_for('routes.library') }}" class="btn btn-secondary" style="width:100%;">📚 Quiz Library</a>
@@ -107,7 +108,7 @@
                 <div class="form-group">
                     <label class="form-label">Upload PDF <span class="text-muted" style="font-size:0.8rem;">(any size — processed in browser)</span></label>
                     <input type="file" id="pdfFileInput" class="form-control" accept=".pdf">
-                    <input type="hidden" name="raw_text" id="pdfExtractedText">
+                    <input type="hidden" id="pdfExtractedText">
                     <p id="pdfStatus" class="text-muted mt-1" style="font-size:0.85rem; display:none;"></p>
                 </div>
             </div>
@@ -195,7 +196,7 @@ const tips = [
 ];
 
 quizForm.addEventListener('submit', function(e) {
-    // Check image file size (PDF is handled client-side now)
+    // Check image file size
     const imageInput = quizForm.querySelector('input[name="image_file"]');
     if (imageInput && imageInput.files.length > 0 && imageInput.files[0].size > 4 * 1024 * 1024) {
         e.preventDefault();
@@ -203,7 +204,7 @@ quizForm.addEventListener('submit', function(e) {
         return;
     }
 
-    // For PDF source: switch source_type to 'text' since we extracted text client-side
+    // For PDF source: copy extracted text into raw_text and switch source_type to 'text'
     const sourceType = document.getElementById('source_type').value;
     if (sourceType === 'pdf') {
         const extractedText = document.getElementById('pdfExtractedText').value;
@@ -212,7 +213,9 @@ quizForm.addEventListener('submit', function(e) {
             alert('Please upload a PDF first and wait for it to be processed.');
             return;
         }
+        // Set source_type to text and populate the raw_text field with extracted PDF text
         document.getElementById('source_type').value = 'text';
+        document.querySelector('#panel-text textarea[name="raw_text"]').value = extractedText;
     }
 
     loadingOverlay.style.display = 'flex';
