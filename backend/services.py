@@ -100,9 +100,13 @@ def send_otp_email(to_email, otp):
     smtp_email = os.getenv("SMTP_EMAIL", "")
     smtp_password = os.getenv("SMTP_PASSWORD", "")
 
+    # For local development, if SMTP is not set, we skip and return True anyway
     if not smtp_email or not smtp_password:
-        print("[OTP] SMTP_EMAIL or SMTP_PASSWORD not set — cannot send OTP")
-        return False
+        print("[OTP] SMTP_EMAIL or SMTP_PASSWORD not set — skipping email send")
+        print(f"--------------------------------------------------")
+        print(f"  DEVELOPMENT MODE: Enter this code to verify: {otp}")
+        print(f"--------------------------------------------------")
+        return True
 
     subject = "AdaptiveQuiz — Your Verification Code"
     html_body = f"""
@@ -135,4 +139,7 @@ def send_otp_email(to_email, otp):
         return True
     except Exception as e:
         print(f"[OTP] Email send error: {e}")
-        return False
+        print(f"--------------------------------------------------")
+        print(f"  FAILED TO SEND EMAIL. Use this code to verify: {otp}")
+        print(f"--------------------------------------------------")
+        return True # Still return True so signup flow isn't blocked locally

@@ -79,10 +79,18 @@ def login():
             or_(User.email == login_id, User.username == login_id)
         ).first()
 
-        if user and user.check_password(password):
-            login_user(user)
-            session["is_guest"] = False
-            return redirect(url_for("routes.dashboard"))
+        print(f"[Login] Attempt for: {login_id}")
+        if user:
+            print(f"[Login] User found: {user.username}")
+            if user.check_password(password):
+                print(f"[Login] Success for {user.username}")
+                login_user(user)
+                session["is_guest"] = False
+                return redirect(url_for("routes.dashboard"))
+            else:
+                print(f"[Login] Password check FAILED for {user.username}")
+        else:
+            print(f"[Login] User NOT found in DB: {login_id}")
 
         flash("Invalid credentials. Please try again.", "danger")
     return render_template("login.html")
