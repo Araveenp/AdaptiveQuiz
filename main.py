@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 
 from backend.models import db, User
 
-load_dotenv()
+# Only load .env file during local development, not on Vercel
+if not os.environ.get("VERCEL"):
+    load_dotenv()
 
 
 def create_app():
@@ -25,38 +27,20 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "adaptive-quiz-dev-key-2026")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Database — use DATABASE_URL for PostgreSQL (Vercel), SQLite locally
-    database_url = os.getenv("DATABASE_URL", "")
-    if database_url:
-        # Fix Heroku/Neon-style postgres:// → postgresql://
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
-        # ── Connection-pool hardening (fixes dropped SSL connections) ──
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "pool_pre_ping": True,        # test connection before every checkout
-            "pool_recycle": 280,           # recycle connections every ~5 min
-            "pool_size": 5,
-            "max_overflow": 10,
-            "connect_args": {
-                "keepalives": 1,
-                "keepalives_idle": 30,
-                "keepalives_interval": 10,
-                "keepalives_count": 5,
-            },
-        }
+    # Database — use /tmp on Vercel (read-only filesystem)
+    if os.environ.get("VERCEL"):
+        db_path = os.path.join(tempfile.gettempdir(), "adaptive_quiz.db")
     else:
-        if os.environ.get("VERCEL"):
-            db_path = os.path.join(tempfile.gettempdir(), "adaptive_quiz.db")
-        else:
-            db_path = os.path.join(os.path.dirname(__file__), "adaptive_quiz.db")
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+        db_path = os.path.join(os.path.dirname(__file__), "adaptive_quiz.db")
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "DATABASE_URL", f"sqlite:///{db_path}"
+    )
 
     # Uploads
     app.config["UPLOAD_FOLDER"] = "/tmp/uploads"
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024  # 4MB (Vercel limit)
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
     # ── Extensions ───────────────────────────────────────────────
     db.init_app(app)
