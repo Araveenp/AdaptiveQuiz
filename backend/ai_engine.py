@@ -29,7 +29,7 @@ class AIEngine:
                 try:
                     self._client = OpenAI(
                         api_key=key,
-                        base_url="https://openrouter.io/api/v1",
+                        base_url="https://openrouter.ai/api/v1",
                     )
                     print(f"[AIEngine] OpenRouter client initialized (key: ...{key[-6:]})")
                 except Exception as e:
