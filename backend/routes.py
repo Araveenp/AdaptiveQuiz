@@ -54,10 +54,14 @@ def health_check():
     if ai.client:
         try:
             test_completion = ai.client.chat.completions.create(
-                messages=[{"role": "user", "content": "ping"}],
+                messages=[
+                    {"role": "system", "content": "You are an expert academic examiner. Output ONLY valid JSON. Structure: {\"questions\": [{\"question\": \"...\", \"options\": {\"A\": \"...\", \"B\": \"...\", \"C\": \"...\", \"D\": \"...\"}, \"correct_answer\": \"A\", \"explanation\": \"...\"}]}"},
+                    {"role": "user", "content": "TASK: Generate exactly 1 MCQ question.\nDIFFICULTY: medium — focus on application and analysis level.\nRULE: Generate MCQs with 4 options (A, B, C, D).\nCONTENT:\nScience trivia."}
+                ],
                 model=ai.MODEL,
-                max_tokens=5,
-                timeout=10.0,
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                timeout=20.0,
             )
             api_test_result = "Success"
         except Exception as e:
