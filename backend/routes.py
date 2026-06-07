@@ -49,11 +49,30 @@ def is_allowed():
 @routes_bp.route("/health")
 def health_check():
     key = os.getenv("OPENROUTER_API_KEY", "")
+    api_test_result = "Not run"
+    api_error = None
+    if ai.client:
+        try:
+            test_completion = ai.client.chat.completions.create(
+                messages=[{"role": "user", "content": "ping"}],
+                model=ai.MODEL,
+                max_tokens=5,
+                timeout=10.0,
+            )
+            api_test_result = "Success"
+        except Exception as e:
+            api_test_result = "Failed"
+            api_error = str(e)
+    else:
+        api_test_result = "Client not initialized"
+
     return jsonify({
         "status": "ok",
         "openrouter_key_set": bool(key),
         "openrouter_key_preview": f"...{key[-6:]}" if len(key) > 6 else "NOT SET",
         "ai_client_ready": ai.client is not None,
+        "api_test_result": api_test_result,
+        "api_error": api_error,
     })
 
 
