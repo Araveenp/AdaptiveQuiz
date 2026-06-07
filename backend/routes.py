@@ -61,6 +61,7 @@ def health_check():
                 model=ai.MODEL,
                 response_format={"type": "json_object"},
                 temperature=0.3,
+                max_tokens=500,
                 timeout=20.0,
             )
             api_test_result = "Success"

@@ -106,6 +106,7 @@ class AIEngine:
                 model=self.MODEL,
                 response_format={"type": "json_object"},
                 temperature=0.3,
+                max_tokens=2000,
                 timeout=60.0,
             )
             if completion:
@@ -144,6 +145,7 @@ class AIEngine:
                 model=self.MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
+                max_tokens=2000,
                 timeout=35.0,
             )
             if response:
@@ -183,6 +185,7 @@ class AIEngine:
                 messages=[{"role": "user", "content": prompt}],
                 model=self.FAST_MODEL,
                 temperature=0.7,
+                max_tokens=500,
                 timeout=15.0,
             )
             if completion:
@@ -201,6 +204,7 @@ class AIEngine:
                 self.client.chat.completions.create,
                 messages=[{"role": "user", "content": "Share one amazing, short tech or science fact in one sentence."}],
                 model=self.FAST_MODEL,
+                max_tokens=150,
                 timeout=10.0,
             )
             if completion:
@@ -219,6 +223,7 @@ class AIEngine:
                 self.client.chat.completions.create,
                 messages=[{"role": "user", "content": f"Identify the main subject of this text. Return ONLY the topic name in 2-4 words:\n{content[:1000]}"}],
                 model=self.FAST_MODEL,
+                max_tokens=50,
                 timeout=10.0,
             )
             if completion:
