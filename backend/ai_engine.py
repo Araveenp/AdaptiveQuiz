@@ -12,10 +12,10 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
         self._client = None
         self._init_error = None
-        # Using Claude 3.5 Sonnet via OpenRouter (powerful and balanced)
-        self.MODEL = "anthropic/claude-3.5-sonnet"
+        # Using Gemini 2.5 Flash via OpenRouter
+        self.MODEL = "google/gemini-2.5-flash"
         # Faster model for lightweight tasks
-        self.FAST_MODEL = "anthropic/claude-3.5-haiku"
+        self.FAST_MODEL = "google/gemini-2.5-flash"
 
     @property
     def client(self):
