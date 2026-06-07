@@ -39,6 +39,10 @@ class AIEngine:
 
     def _request(self, func, *args, **kwargs):
         """Retry wrapper for API calls."""
+        if not self.client:
+            print("[AIEngine] Client not initialized, cannot make request")
+            return None
+        
         for attempt in range(3):
             try:
                 return func(*args, **kwargs)

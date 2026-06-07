@@ -66,7 +66,24 @@ def create_app():
 
     # ── Create tables ────────────────────────────────────────────
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            print("[App] Database tables initialized successfully")
+        except Exception as e:
+            print(f"[App] Warning: Could not initialize database tables: {e}")
+    
+    # ── Error handlers ───────────────────────────────────────────
+    @app.errorhandler(500)
+    def internal_error(error):
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": "Internal server error"}, 500
+    
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}, 500
 
     return app
 
