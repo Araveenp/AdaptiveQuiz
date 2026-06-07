@@ -56,7 +56,7 @@ def extract_text_from_image(file_obj):
 
         client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
         response = client.chat.completions.create(
-            model="meta-llama/llama-4-maverick",
+            model="openrouter/free",
             messages=[{
                 "role": "user",
                 "content": [

@@ -12,10 +12,10 @@ class AIEngine:
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
         self._client = None
         self._init_error = None
-        # Using Gemini 2.5 Flash via OpenRouter
-        self.MODEL = "google/gemini-2.5-flash"
+        # Using OpenRouter Free Router to run completely for free
+        self.MODEL = "openrouter/free"
         # Faster model for lightweight tasks
-        self.FAST_MODEL = "google/gemini-2.5-flash"
+        self.FAST_MODEL = "openrouter/free"
 
     @property
     def client(self):
